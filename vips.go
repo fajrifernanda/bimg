@@ -9,6 +9,7 @@ import "C"
 import (
 	"errors"
 	"fmt"
+	"log"
 	"math"
 	"os"
 	"runtime"
@@ -734,4 +735,96 @@ func vipsGamma(image *C.VipsImage, Gamma float64) (*C.VipsImage, error) {
 		return nil, catchVipsError()
 	}
 	return out, nil
+}
+
+func vipsImageFromSource(
+	src *C.VipsSourceCustom,
+) (*C.VipsImage, error) {
+	var out *C.VipsImage
+
+	_ = C.image_new_from_source(src, &out)
+
+	res := "anu.jpg"
+	C.resize_image(out, C.CString(res), C.double(0.5))
+
+	return out, nil
+}
+
+func resizeFromSource(
+	src *C.VipsSourceCustom,
+) (*C.VipsImage, error) {
+	var out *C.VipsImage
+
+	//start := time.Now()
+	options := C.CString("access=sequential")
+	defer C.free(unsafe.Pointer(options))
+	_ = C.image_new_from_source_with_option(src, &out, options)
+	//fmt.Println("load", time.Since(start))
+
+	res := "out_streaming.webp"
+	C.resize_image(out, C.CString(res), C.double(0.5))
+
+	return out, nil
+}
+
+func resizeFromSourceVIPS(
+	src *C.VipsSource,
+) (*C.VipsImage, error) {
+	var out *C.VipsImage
+
+	//start := time.Now()
+	options := C.CString("access=sequential")
+	defer C.free(unsafe.Pointer(options))
+	//_ = C.image_new_from_source_with_option(src, &out, options)
+	_ = C.image_new_from_source_with_option_ori(src, &out, options)
+
+	//fmt.Println("load", time.Since(start))
+
+	res := "out_streaming.webp"
+	C.resize_image(out, C.CString(res), C.double(0.5))
+
+	return out, nil
+}
+
+func resizeFromImage(
+	src *C.VipsImage,
+) (*C.VipsImage, error) {
+	res := "out_fullload.jpg"
+	C.resize_image(src, C.CString(res), C.double(0.5))
+
+	return src, nil
+}
+
+func ResizeFromFileUsingStreaming(filename string) {
+	//file, err := os.Open(filename)
+	//if err != nil {
+	//	log.Fatal(err)
+	//}
+	// file reader should be store to Source
+
+	source := C.source_new_from_file(C.CString(filename))
+	resizeFromSourceVIPS(source)
+
+	//source := NewSource(file)
+	//resizeFromSource(source)
+}
+
+func ResizeFromFileFullLoad(filename string) {
+	buf, err := os.ReadFile(filename)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	var image *C.VipsImage
+	imageType := vipsImageType(buf)
+
+	length := C.size_t(len(buf))
+	imageBuf := unsafe.Pointer(&buf[0])
+
+	errVips := C.vips_init_image(imageBuf, length, C.int(imageType), &image)
+	if errVips != 0 {
+		log.Fatal(err)
+	}
+
+	resizeFromImage(image)
 }

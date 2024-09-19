@@ -1,13 +1,22 @@
 package bimg
 
+import "io"
+
 // Image provides a simple method DSL to transform a given image as byte buffer.
 type Image struct {
-	buffer []byte
+	buffer        []byte
+	newReader     func() (r io.ReadCloser, size int64, err error)
+	newReadSeeker func() (rs io.ReadSeekCloser, size int64, err error)
 }
 
 // NewImage creates a new Image struct with method DSL.
 func NewImage(buf []byte) *Image {
-	return &Image{buf}
+	return &Image{buffer: buf}
+}
+
+// NewImageFromReader creates a new Image struct with method DSL.
+func NewImageFromReader(newReader func() (r io.ReadCloser, size int64, err error)) *Image {
+	return &Image{newReader: newReader}
 }
 
 // Resize resizes the image to fixed width and height.

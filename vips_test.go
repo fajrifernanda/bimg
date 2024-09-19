@@ -168,3 +168,37 @@ func readImage(file string) []byte {
 	defer img.Close()
 	return buf
 }
+
+// benchmark streaming
+
+func BenchmarkResizeUsingStreamingJPG(t *testing.B) {
+	filename := "testdata/gambarcoba.jpg"
+	ResizeFromFileUsingStreaming(filename)
+
+}
+
+func BenchmarkResizeFullLoadJPG(t *testing.B) {
+	filename := "testdata/gambarcoba.jpg"
+	ResizeFromFileFullLoad(filename)
+}
+
+func BenchmarkResizeUsingStreamingPNG(t *testing.B) {
+	filename := "testdata/gambarpienji.png"
+	ResizeFromFileUsingStreaming(filename)
+
+}
+
+func BenchmarkResizeFullLoadPNG(t *testing.B) {
+	filename := "testdata/gambarpienji.png"
+	ResizeFromFileFullLoad(filename)
+}
+
+func BenchmarkResizeFullLoadWEBP(t *testing.B) {
+	filename := "testdata/gambarwebpi.webp"
+	ResizeFromFileFullLoad(filename)
+}
+
+func BenchmarkResizeUsingStreamingWEBP(t *testing.B) {
+	filename := "testdata/gambarwebpi.webp"
+	ResizeFromFileUsingStreaming(filename)
+}

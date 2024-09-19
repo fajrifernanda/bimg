@@ -599,3 +599,52 @@ int vips_gamma_bridge(VipsImage *in, VipsImage **out, double exponent)
 {
   return vips_gamma(in, out, "exponent", 1.0 / exponent, NULL);
 }
+
+int image_new_from_source(VipsSourceCustom *source, VipsImage **out) {
+  *out = vips_image_new_from_source((VipsSource*) source, "", NULL);
+  if (!*out) return 1;
+  return 0;
+}
+
+int resize_image(VipsImage *image, const char *output_path, double scale) {
+    VipsImage *resized_image = NULL;
+    if (vips_resize(image, &resized_image, scale, NULL)) {
+        vips_error_exit("Unable to resize image");
+        return -1;
+    }
+
+    if (vips_image_write_to_file(resized_image, output_path, NULL)) {
+        vips_error_exit("Unable to save image");
+        return -1;
+    }
+
+    g_object_unref(image);
+    g_object_unref(resized_image);
+
+    return 0;
+}
+
+void clear_source(VipsSourceCustom **source_custom) {
+  if (G_IS_OBJECT(*source_custom)) g_clear_object(source_custom);
+}
+
+int image_new_from_source_with_option(VipsSourceCustom *source, VipsImage **out, const char *option_string) {
+  *out = vips_image_new_from_source((VipsSource*) source, option_string, NULL);
+  if (!*out) return 1;
+  return 0;
+}
+
+int image_new_from_source_with_option_ori(VipsSource *source, VipsImage **out, const char *option_string) {
+  *out = vips_image_new_from_source(source, option_string, NULL);
+  if (!*out) return 1;
+  return 0;
+}
+
+VipsSource* source_new_from_file(const char *filename) {
+    VipsSource *out = vips_source_new_from_file(filename);  // Declare and initialize out
+    if (!out) {
+        return NULL;  // Return NULL if the creation fails
+    }
+    return out;  // Return the created source on success
+}
+
